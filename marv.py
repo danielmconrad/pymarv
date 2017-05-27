@@ -1,14 +1,25 @@
 #!/usr/bin/python
-from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor
 
 import time
 import atexit
 import pprint
 import pygame
 import os
+import sys
+
+from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor
+
+# Disable video mode
+import pygame.display
+import pygame.transform
+
+
+
+
+
 
 # create a default object, no changes to I2C address or frequency
-mh = Adafruit_MotorHAT(addr=0x60)
+motors = Adafruit_MotorHAT(addr=0x60)
 
 # recommended for auto-disabling motors on shutdown!
 
@@ -26,19 +37,19 @@ def setDirection(forwardBackward, leftRight):
 
 def setSpeed(speed):
   for i in range(1, 5):
-    mh.getMotor(i).setSpeed(speed)
+    motors.getMotor(i).setSpeed(speed)
 
 def turnOffMotors():
   for i in range(1, 5):
-    mh.getMotor(i).run(Adafruit_MotorHAT.RELEASE)
+    motors.getMotor(i).run(Adafruit_MotorHAT.RELEASE)
 
 def setForward():
   for i in range(1, 5):
-    mh.getMotor(i).run(Adafruit_MotorHAT.FORWARD)
+    motors.getMotor(i).run(Adafruit_MotorHAT.FORWARD)
 
 def setBackward():
   for i in range(1, 5):
-    mh.getMotor(i).run(Adafruit_MotorHAT.BACKWARD)
+    motors.getMotor(i).run(Adafruit_MotorHAT.BACKWARD)
 
 atexit.register(turnOffMotors)
 
@@ -49,8 +60,13 @@ class PS4Controller(object):
   hat_data = None
 
   def init(self):
+    os.environ["SDL_VIDEODRIVER"] = "dummy"
+
     pygame.init()
     pygame.joystick.init()
+    pygame.display.init()
+
+    # screen = pygame.display.set_mode((1,1))
 
     self.controller = pygame.joystick.Joystick(0)
     self.controller.init()
@@ -106,3 +122,5 @@ ps4 = PS4Controller()
 ps4.init()
 ps4.listen()
 
+
+# hi george.
