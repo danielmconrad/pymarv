@@ -95,9 +95,13 @@ class PS4Controller:
         yield controller_state
         controller_state = PS4ControllerState()
 
-  # def read(self):
-  #   for event in self.controller.read():
-  #     self.__handle_event(event)
+  def read(self):
+    controller_state = PS4ControllerState()
+
+    for event in self.controller.read():
+      self.__handle_event(event, controller_state)
+
+    return controller_state
 
   # Private
 
@@ -131,7 +135,10 @@ class PS4Controller:
     return PRETTY_MAP[code]
 
 
-controller = PS4Controller()
+# controller = PS4Controller()
+# controller_state = controller.read()
+# print(controller_state.state)
+
 for controller_state in controller.listen():
   os.system('clear')
   print(controller_state.state)
