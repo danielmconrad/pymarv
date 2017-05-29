@@ -20,7 +20,8 @@ class Motors:
   # Public
 
   def move(self, angle, magnitude):
-    print(angle, magnitude)
+    if magnitude > 0.1:
+      print(angle, magnitude)
 
 
   # Private

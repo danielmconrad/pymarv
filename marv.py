@@ -13,9 +13,9 @@ class Marv:
 
   def start(self):
     for state in self.controller.listen():
-      # os.system('clear')
-      pass
-      # print(json.dumps(state, sort_keys=True, indent=2))
+      angle = state["LEFT_ANALOG"]["angle"]
+      magnitude = state["LEFT_ANALOG"]["magnitude"]
+      self.motors.move(angle, magnitude)
 
 marv = Marv()
 marv.start()

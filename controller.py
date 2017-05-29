@@ -1,6 +1,7 @@
 import evdev
 import os
 import math
+import json
 
 from evdev import ecodes
 from evdev.util import categorize, event_factory
@@ -32,38 +33,31 @@ PRETTY_MAP = {
 }
 
 EMPTY_STATE = {
-  # "CIRCLE":           {"pressed": False},
-  # "CROSS":            {"pressed": False},
-  # "DPAD":             {"pressed": False, "magnitude": 0, "angle": 0}
-  # "DPAD_DOWN":        {"pressed": False},
-  # "DPAD_HORIZONTAL":  {"pressed": False, "magnitude": 0},
-  # "DPAD_LEFT":        {"pressed": False},
-  # "DPAD_RIGHT":       {"pressed": False},
-  # "DPAD_UP":          {"pressed": False},
-  # "DPAD_VERTICAL":    {"pressed": False, "magnitude": 0},
-  # "L1":               {"pressed": False},
-  # "L2":               {"pressed": False, "magnitude": 0},
-  # "OPTIONS":          {"pressed": False},
-  # "PLAYSTATION":      {"pressed": False},
-  # "R1":               {"pressed": False},
-  # "R2":               {"pressed": False, "magnitude": 0},
-  # "SHARE":            {"pressed": False},
-  # "SQUARE":           {"pressed": False},
-  # "TOUCHPAD":         {"pressed": False},
-  # "TRIANGLE":         {"pressed": False},
-
-
-
-
-
-  "LEFT_ANALOG":      {"pressed": False, "magnitude": 0, "angle": 0},
-  "LEFT_ANALOG_HORIZONTAL": {"pressed": False, "magnitude": 0},
-  "LEFT_ANALOG_VERTICAL": {"pressed": False, "magnitude": 0},
-
-
-  # "RIGHT_ANALOG":     {"pressed": False, "magnitude": 0, "angle": 0},
-  # "RIGHT_ANALOG_HORIZONTAL": {"pressed": False, "magnitude": 0},
-  # "RIGHT_ANALOG_VERTICAL": {"pressed": False, "magnitude": 0}
+  "CIRCLE":                   {"pressed": False},
+  "CROSS":                    {"pressed": False},
+  "DPAD":                     {"pressed": False, "magnitude": 0, "angle": 0},
+  "DPAD_DOWN":                {"pressed": False},
+  "DPAD_HORIZONTAL":          {"pressed": False, "magnitude": 0},
+  "DPAD_LEFT":                {"pressed": False},
+  "DPAD_RIGHT":               {"pressed": False},
+  "DPAD_UP":                  {"pressed": False},
+  "DPAD_VERTICAL":            {"pressed": False, "magnitude": 0},
+  "L1":                       {"pressed": False},
+  "L2":                       {"pressed": False, "magnitude": 0},
+  "LEFT_ANALOG":              {"pressed": False, "magnitude": 0, "angle": 0},
+  "LEFT_ANALOG_HORIZONTAL":   {"pressed": False, "magnitude": 0},
+  "LEFT_ANALOG_VERTICAL":     {"pressed": False, "magnitude": 0},
+  "OPTIONS":                  {"pressed": False},
+  "PLAYSTATION":              {"pressed": False},
+  "R1":                       {"pressed": False},
+  "R2":                       {"pressed": False, "magnitude": 0},
+  "RIGHT_ANALOG":             {"pressed": False, "magnitude": 0, "angle": 0},
+  "RIGHT_ANALOG_HORIZONTAL":  {"pressed": False, "magnitude": 0},
+  "RIGHT_ANALOG_VERTICAL":    {"pressed": False, "magnitude": 0},
+  "SHARE":                    {"pressed": False},
+  "SQUARE":                   {"pressed": False},
+  "TOUCHPAD":                 {"pressed": False},
+  "TRIANGLE":                 {"pressed": False}
 }
 
 DPAD_ANGLES = [[0, 90, 270], [0, 45, 315], [180, 135, 225]]
@@ -155,17 +149,12 @@ class PS4Controller:
     DPAD["angle"] = DPAD_ANGLES[DPAD_HORIZONTAL["magnitude"]][DPAD_VERTICAL["magnitude"]]
     DPAD["magnitude"] = 1 if DPAD["pressed"] == True else 0
 
-  # 0 - 255
   def __add_analog_horizontal_state(self, code, value):
     magnitude = (value - 127.5) / 127.5
     button = self.state[code]
     button["pressed"] = magnitude != 0
     button["magnitude"] = magnitude
 
-    # print(str(magnitude))
-
-
-    # AGGREGATE
     side = "LEFT" if "LEFT" in code else "RIGHT"
 
     aggegate_button = self.state[side+"_ANALOG"]
@@ -180,17 +169,19 @@ class PS4Controller:
     aggregate_magnitude = min(1, math.hypot(horizontal_magnitude, vertical_magnitude))
     aggegate_button["magnitude"] = aggregate_magnitude
 
-    angle = math.acos(
-      (
-        math.pow(horizontal_magnitude, 2)
-        + math.pow(aggregate_magnitude, 2)
-        + math.pow(vertical_magnitude, 2)
-      )
-      / (2 * horizontal_magnitude * aggregate_magnitude)
-    )
-    print(str(angle))
-    # need scalar and angle
+    if aggregate_magnitude == 0:
+      angle = 0
 
+    else:
+      angle = math.degrees(math.asin(vertical_magnitude/aggregate_magnitude))
+
+      if horizontal_magnitude < 0:
+        angle = 180 - angle
+
+    if angle < 0:
+      angle += 360
+
+    aggegate_button["angle"] = angle
 
   def __add_analog_vertical_state(self, code, value):
     magnitude = round((128 - value) / 128, 2)
