@@ -1,7 +1,5 @@
 import evdev
-import os
 import math
-import json
 
 from evdev import ecodes
 from evdev.util import categorize, event_factory
@@ -63,12 +61,11 @@ EMPTY_STATE = {
 DPAD_ANGLES = [[0, 90, 270], [0, 45, 315], [180, 135, 225]]
 
 
-class PS4Controller:
+class Dualshock:
   def __init__(self):
     self.state = EMPTY_STATE
     self.controller = self.__get_controller()
-    self.controller.grab()
-    self.__print_capabilities()
+
 
   def __get_controller(self):
     devices = [evdev.InputDevice(fn) for fn in evdev.list_devices()]
@@ -76,12 +73,16 @@ class PS4Controller:
       if "DUALSHOCK®4" in device.name:
         return evdev.InputDevice(device.fn)
 
-    raise ValueError("Unable to find a connected PS4 controller.")
-
   # Public
 
-  def free(self):
-    self.controller.ungrab()
+  def is_connected(self):
+    if self.controller is None:
+      return False
+    else:
+      return True
+
+  def print_capabilities(self):
+    print(self.controller.capabilities(verbose=True))
 
   def listen(self):
     for event in self.controller.read_loop():
@@ -91,9 +92,6 @@ class PS4Controller:
         yield self.state
 
   # Private
-
-  def __print_capabilities(self):
-    print(this.controller.capabilities())
 
   def __handle_event(self, event):
     categorized_event = evdev.util.categorize(event)

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-
+import atexit
 from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor
 
 MOTOR_INDEXES = {
@@ -11,6 +11,7 @@ MOTOR_INDEXES = {
 class Motors:
   def __init__(self):
     self.__add_motors()
+    atexit.register(self.__turn_all_motors_off)
 
 
   # Public
