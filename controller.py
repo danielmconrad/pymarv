@@ -67,6 +67,8 @@ class PS4Controller:
   def __init__(self):
     self.state = EMPTY_STATE
     self.controller = self.__get_controller()
+    self.controller.grab()
+    self.__print_capabilities()
 
   def __get_controller(self):
     devices = [evdev.InputDevice(fn) for fn in evdev.list_devices()]
@@ -78,6 +80,9 @@ class PS4Controller:
 
   # Public
 
+  def free(self):
+    self.controller.ungrab()
+
   def listen(self):
     for event in self.controller.read_loop():
       self.__handle_event(event)
@@ -86,6 +91,9 @@ class PS4Controller:
         yield self.state
 
   # Private
+
+  def __print_capabilities(self):
+    print(this.controller.capabilities())
 
   def __handle_event(self, event):
     categorized_event = evdev.util.categorize(event)

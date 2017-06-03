@@ -1,74 +1,95 @@
 #!/usr/bin/python
 
-import atexit
 
 from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor
 
-motors = Adafruit_MotorHAT(addr=0x60)
+MOTOR_INDEXES = {
+  "LEFT": [2, 3],
+  "RIGHT": [1, 4]
+}
 
 class Motors:
   def __init__(self):
-    self.motors = []
-    self.left_motors = []
-    self.right_motors = []
-
     self.__add_motors()
-
-    atexit.register(self.__turn_off_motors)
 
 
   # Public
 
-  def move(self, angle, magnitude):
-    if magnitude > 0.1:
-      print(angle, magnitude)
+  def tank_move(self, left_magnitude, right_magnitude):
+    self.set_motors_magnitude(self.left_motors, left_magnitude)
+    self.set_motors_magnitude(self.right_motors, right_magnitude)
+
+  def stop(self):
+    self.__turn_all_motors_off()
 
 
   # Private
 
   def __add_motors(self):
-    for i in range(1, 3):
+    self.motors = []
+    self.left_motors = []
+    self.right_motors = []
+
+    motors = Adafruit_MotorHAT(addr=0x60)
+
+    for i in MOTOR_INDEXES["LEFT"]:
       motor = motors.getMotor(i)
       self.motors.append(motor)
       self.left_motors.append(motor)
 
-    for i in range(3, 5):
+    for i in MOTOR_INDEXES["RIGHT"]:
       motor = motors.getMotor(i)
       self.motors.append(motor)
       self.right_motors.append(motor)
 
-  def __turn_off_motors(self):
-    map(self.__turn_off_motor, self.motors)
+  def set_motors_magnitude(self, motors, magnitude):
+    for motor in motors:
+      self.set_motor_magnitude(motor, magnitude)
 
-  def __turn_off_motor(self, motor):
+  def set_motor_magnitude(self, motor, magnitude):
+    actual_speed = int(abs(magnitude) * 255)
+
+    if magnitude < 0:
+      self.__set_motor_forward(motor)
+      self.__set_motor_speed(motor, actual_speed)
+    elif magnitude > 0:
+      self.__set_motor_backward(motor)
+      self.__set_motor_speed(motor, actual_speed)
+    else:
+      self.__set_motor_speed(motor, 0)
+
+
+  # Off
+  def __turn_all_motors_off(self):
+    self.__turn_motors_off(self.motors)
+
+  def __turn_motors_off(self, motors):
+    for motor in motors:
+      self.__turn_motor_off(motor)
+
+  def __turn_motor_off(self, motor):
     motor.run(Adafruit_MotorHAT.RELEASE)
 
+  # Forward
+  def __set_motors_forward(self, motors):
+    for motor in motors:
+      self.__set_motor_forward(motor)
 
+  def __set_motor_forward(self, motor):
+    motor.run(Adafruit_MotorHAT.FORWARD)
 
-  # def setDirection(forwardBackward):
-  #   actualSpeed = int(abs(forwardBackward) * 255)
+  # Backward
+  def __set_motors_backward(self, motors):
+    for motor in motors:
+      self.__set_motor_backward(motor)
 
-  #   if forwardBackward < 0:
-  #     setForward()
-  #     setSpeed(actualSpeed)
-  #   elif forwardBackward > 0:
-  #     setBackward()
-  #     setSpeed(actualSpeed)
-  #   else:
-  #     __turn_off_motors()
+  def __set_motor_backward(self, motor):
+    motor.run(Adafruit_MotorHAT.BACKWARD)
 
-  # def setSpeed(speed):
-  #   for i in range(1, 5):
-  #     motors.getMotor(i).setSpeed(speed)
+  # Speed
+  def __set_motors_speed(self, motors, speed):
+    for motor in motors:
+      self.__set_motor_speed(motor, speed)
 
-  # def __turn_off_motors():
-  #   for i in range(1, 5):
-  #     motors.getMotor(i).run(Adafruit_MotorHAT.RELEASE)
-
-  # def setForward():
-  #   for i in range(1, 5):
-  #     motors.getMotor(i).run(Adafruit_MotorHAT.FORWARD)
-
-  # def setBackward():
-  #   for i in range(1, 5):
-  #     motors.getMotor(i).run(Adafruit_MotorHAT.BACKWARD)
+  def __set_motor_speed(self, motor, speed):
+    motor.setSpeed(speed)
