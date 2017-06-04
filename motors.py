@@ -48,7 +48,7 @@ class Motors:
       self.set_motor_magnitude(motor, magnitude)
 
   def set_motor_magnitude(self, motor, magnitude):
-    actual_speed = int(abs(magnitude) * 255)
+    actual_speed = min(255, int(abs(magnitude) * 255))
 
     if magnitude < 0:
       self.__set_motor_forward(motor)

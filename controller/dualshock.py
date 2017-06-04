@@ -82,7 +82,7 @@ class Dualshock:
       return True
 
   def print_capabilities(self):
-    print(self.controller.capabilities(verbose=True))
+    print("Using controller: ", self.controller.name)
 
   def listen(self):
     for event in self.controller.read_loop():
