@@ -2,7 +2,7 @@
 
 import controller
 import motors
-# import camera
+import camera
 import time
 
 class Marv:
@@ -16,9 +16,18 @@ class Marv:
     self.last_right = None
 
   def start(self):
+    self.__show_started()
+
     for state in self.controller.listen():
       self.__handle_tank_move(state)
       # self.__handle_camera_capture(state)
+
+  def __show_started(self):
+    self.motors.tank_move(1, 1)
+    time.sleep(.1)
+    self.motors.tank_move(-1, -1)
+    time.sleep(.1)
+    self.motors.tank_move(0, 0)
 
   def __handle_tank_move(self, state):
     left = state["LEFT_ANALOG_VERTICAL"]["magnitude"]
@@ -41,7 +50,6 @@ class Marv:
   def __handle_camera_capture(self, state):
     if state["SQUARE"]["pressed"] == True:
       self.camera.capture()
-
 
 marv = Marv()
 marv.start()
