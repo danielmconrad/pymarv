@@ -2,10 +2,12 @@
 
 import controller
 import motors
+# import camera
 import time
 
 class Marv:
   def __init__(self):
+    # self.camera = camera.Camera()
     self.motors = motors.Motors()
     self.controller = controller.get_any_controller()
     self.controller.print_capabilities()
@@ -16,6 +18,7 @@ class Marv:
   def start(self):
     for state in self.controller.listen():
       self.__handle_tank_move(state)
+      # self.__handle_camera_capture(state)
 
   def __handle_tank_move(self, state):
     left = state["LEFT_ANALOG_VERTICAL"]["magnitude"]
@@ -34,6 +37,11 @@ class Marv:
       return 0
     else:
       return magnitude * 1.2
+
+  def __handle_camera_capture(self, state):
+    if state["SQUARE"]["pressed"] == True:
+      self.camera.capture()
+
 
 marv = Marv()
 marv.start()
